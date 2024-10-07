@@ -27,12 +27,12 @@ RUN echo "Package: libxml2*" > /etc/apt/preferences.d/libxml2 && \
 
 # PHP 5.6
 RUN apt-get update && \
-    apt-get install -y curl wget sox lsb-release && \
-    curl https://packages.sury.org/php/apt.gpg | apt-key add - && \
+    apt-get install -y curl wget sox lsb-release gnupg && \
+    curl -fsSL https://packages.sury.org/php/apt.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/sury-php.gpg && \
     echo "deb https://packages.sury.org/php/ buster main" > /etc/apt/sources.list.d/deb.sury.org.list && \
     apt-get update && \
     apt-get install -y php5.6 php5.6-curl php5.6-cli php5.6-mysql php-pear php5.6-gd \
-                       php5.6-xml php5.6-mbstring php5.6-ldap && \
+                   php5.6-xml php5.6-mbstring php5.6-ldap && \
     apt-get install -y libodbc1 odbcinst odbcinst1debian2 && \
     apt-get update && \
     apt-get -o Dpkg::Options::="--force-confold" upgrade -y
