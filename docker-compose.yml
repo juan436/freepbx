@@ -5,7 +5,6 @@ services:
       - 8080:80
       - 5060:5060/udp
       - 5160:5160/udp
-      - 3306:3306
       - 18000-18100:18000-18100/udp
     restart: always
     environment:
@@ -17,6 +16,11 @@ services:
       - FAIL2BAN_FINDTIME=30
       - FAIL2BAN_MAXRETRY=10
       - FAIL2BAN_BANTIME=10
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=admin123
+      - DB_NAME=freepbx
     volumes:
       - backup:/backup
       - recordings:/var/spool/asterisk/monitor
@@ -24,19 +28,37 @@ services:
     networks:
       macvlan0:
         ipv4_address: 192.168.0.4
+      internal_network:
     privileged: true
+
+  db:
+    image: mariadb:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin123
+      - MYSQL_DATABASE=freepbx
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - internal_network
+
   adminer:
-      image: adminer:4.7.6
-      restart: always
-      ports:
-        - "9292:8080"
+    image: adminer:4.7.6
+    restart: always
+    ports:
+      - "9292:8080"
+    networks:
+      - internal_network
 
 volumes:
   backup:
   recordings:
   certificates:
+  db_data:
 
 networks:
   macvlan0:
     external: true
     name: macvlan0
+  internal_network:
+    driver: bridge

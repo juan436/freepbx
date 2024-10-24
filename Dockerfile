@@ -37,8 +37,6 @@ RUN apt-get update && \
     apt-get update && \
     apt-get -o Dpkg::Options::="--force-confold" upgrade -y
 
-RUN apt-get install -y build-essential apache2 mariadb-server mariadb-client bison flex
-
 # MariaDB ODBC connector
 RUN cd /usr/src && \
     mkdir -p mariadb-connector && \
@@ -46,11 +44,6 @@ RUN cd /usr/src && \
     mkdir -p /usr/lib/x86_64-linux-gnu/odbc/ && \
     cp mariadb-connector/lib/libmaodbc.so /usr/lib/x86_64-linux-gnu/odbc/ && \
     rm -rf mariadb-connector
-
-# MariaDB bind config
-RUN rm /etc/mysql/mariadb.conf.d/50-mysqld_safe.cnf && \
-    sed -i 's/bind-address/#bind-address/' /etc/mysql/mariadb.conf.d/50-server.cnf
-
 # FreePBX
 RUN cd /usr/src && \
 	wget http://mirror.freepbx.org/modules/packages/freepbx/freepbx-$FREEPBX_VERSION.tgz && \
@@ -79,8 +72,7 @@ RUN curl --silent https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key
     apt-get install -y nodejs yarn cron gettext libicu-dev pkg-config
 
 # FreePBX
-RUN /etc/init.d/mysql start && \
-    cd /usr/src/freepbx && \
+RUN cd /usr/src/freepbx && \
     echo "Starting Asterisk..." && \
     cp /etc/odbc.ini /usr/src/freepbx/installlib/files/odbc.ini && \
     ./start_asterisk start && \
@@ -91,8 +83,6 @@ RUN /etc/init.d/mysql start && \
     fwconsole chown && \
     fwconsole ma upgradeall && \
     fwconsole ma downloadinstall backup bulkhandler ringgroups timeconditions ivr restapi cel configedit asteriskinfo certman ucp webrtc && \
-    # mysqldump -uroot -d -A -B --skip-add-drop-table > /mysql-freepbx.sql && \
-    /etc/init.d/mysql stop && \
     gpg --refresh-keys --keyserver hkp://keyserver.ubuntu.com:80 && \
     gpg --import /var/www/html/admin/libraries/BMO/9F9169F4B33B4659.key && \
     gpg --import /var/www/html/admin/libraries/BMO/3DDB2122FE6D84F7.key && \
@@ -136,7 +126,7 @@ RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf
 
 CMD [ "/startup.sh" ]
 
-EXPOSE 80 3306 5060/udp 5061/udp 5160/udp 5161/udp 10000-40000/udp
+EXPOSE 80 5060/udp 5061/udp 5160/udp 5161/udp 10000-40000/udp
 
 #recordings data
 VOLUME [ "/var/spool/asterisk/monitor" ]
